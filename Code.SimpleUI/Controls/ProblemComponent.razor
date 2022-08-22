@@ -1,0 +1,67 @@
+﻿
+<h3>Find pattern</h3>
+
+  <div class="mb-3">
+    <label for="InputSearch" class="form-label">Pattern to Search</label>
+    <input type="text" class="form-control" id="InputSearch" @bind="Input">
+    <div class="validation-message" hidden="@(!string.IsNullOrEmpty(Input))">
+      Please enter a text.
+    </div>
+  </div>
+  <div class="mb-3">
+    <label for="InputUserName1" class="form-label">User Name</label>
+    <input type="text" class="form-control" id="InputUserName" @bind="UserName">
+    <div class="validation-message" hidden="@(!string.IsNullOrEmpty(UserName))">
+      Please enter a user name.
+    </div>
+  </div>    
+  <button type="submit" class="btn btn-primary" @onclick="FindPattern" >Find Pattern</button>
+  <br />
+  <br />
+  <div class="mb-3">
+    <label for="InputResult1" class="form-label">Result</label>
+    <input type="text" class="form-control" id="InputResult1" @bind="Result">
+  </div>
+
+
+@code {
+    public string UserName { get; set; } = "Joel Chuca";
+
+    public string Input { get; set; } = "AAApqBBB";
+
+    public string Result { get; set; }
+
+    public async void FindPattern()
+    {
+        this.Result = string.Empty;
+        if (!IsValid()) return;
+        this.Result = await GetAnswer();
+    }
+    
+    private bool IsValid()
+    {
+        return !string.IsNullOrEmpty(Input) && !string.IsNullOrEmpty(UserName);
+    }
+
+    private async Task<string> GetAnswer()
+    {
+        using (var client = new HttpClient())
+        {
+            var domainUrl = "http://localhost:7000/StringPattern";
+            var builder = new UriBuilder(domainUrl);
+            builder.Query = $"input={Input}&user={UserName}";
+            var url = builder.ToString();
+
+            HttpResponseMessage response = await client.GetAsync(url);
+            if (response.IsSuccessStatusCode)
+            {
+                string apiResponse = await response.Content.ReadAsStringAsync();
+                //Console.WriteLine($" apiResponse: {apiResponse}");
+                this.Result = apiResponse;
+                StateHasChanged();
+            }
+        }
+
+        return string.Empty;
+    }
+}
